@@ -1,5 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from Main.models import insert_user, get_all_users, User
+from werkzeug.utils import secure_filename
+import os
+
+# Import the ML model function (placeholder for actual integration)
+from Main.ml_model import audio_to_text
 
 app_routes = Blueprint('app_routes', __name__)
 
@@ -17,7 +22,7 @@ def signup():
 
         # Insert user into the database
         insert_user(username, email, password)
-        return redirect(url_for('app_routes.view_db'))
+        return redirect(url_for('app_routes.upload_file'))
 
     return render_template('signup.html')
 
@@ -38,7 +43,7 @@ def login():
         if user and user.password == password:  # Compare passwords
             # Valid credentials
             users = get_all_users()
-            return render_template('success.html', users = users)
+            return redirect(url_for('app_routes.upload_file'))
         else:
             # Invalid credentials
             flash('Invalid username or password', 'error')
@@ -71,3 +76,35 @@ def check_unique():
 
     return jsonify(response)
 
+
+
+@app_routes.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # Check if file is present in the request
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        # Check if a file was selected
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        
+        # Save the file if it has an allowed extension
+        if file:
+            filename = secure_filename(file.filename)
+            
+
+            # Process the file using the ML model
+            text_output = audio_to_text(filename)
+
+            # Redirect to a page showing the result
+            return render_template('result.html', text_output=text_output)
+        else:
+            flash('File type not allowed')
+            return redirect(request.url)
+
+    return render_template('upload.html')
