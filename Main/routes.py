@@ -1,14 +1,25 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from Main.models import insert_user, get_all_users, User
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import os
+import requests  # For sending files to the Colab server
+from Main.models import insert_user, get_all_users, User  # Adjust the import path as needed
 
-# Import the ML model function (placeholder for actual integration)
-from Main.ml_model import audio_to_text
+# Constants
+UPLOAD_FOLDER = './uploads'
+ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Flask Blueprint
 app_routes = Blueprint('app_routes', __name__)
 
+# Helper function to check file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Routes
 @app_routes.route('/')
 def index():
     return render_template('index.html')
@@ -42,69 +53,69 @@ def login():
 
         if user and user.password == password:  # Compare passwords
             # Valid credentials
-            users = get_all_users()
             return redirect(url_for('app_routes.upload_file'))
         else:
             # Invalid credentials
             flash('Invalid username or password', 'error')
             return render_template('login.html')  # Re-render login page with error
 
-    return render_template('login.html')  # GET request renders login page
-
-
-
-from flask import jsonify
-
-@app_routes.route('/check-unique', methods=['POST'])
-def check_unique():
-    data = request.get_json()
-    print(data)
-    username = data.get('username')
-    email = data.get('email')
-
-    response = {'username_exists': False, 'email_exists': False}
-
-    if username:
-        user = User.query.filter_by(username=username).first()
-        if user:
-            response['username_exists'] = True
-
-    if email:
-        user = User.query.filter_by(email=email).first()
-        if user:
-            response['email_exists'] = True
-
-    return jsonify(response)
-
-
+    return render_template('login.html')
 
 @app_routes.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        # Check if file is present in the request
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
+            return jsonify({"error": "No file part"}), 400
         
         file = request.files['file']
         
-        # Check if a file was selected
         if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        
-        # Save the file if it has an allowed extension
-        if file:
+            return jsonify({"error": "No selected file"}), 400
+
+        # Check if the file is allowed
+        if file and allowed_file(file.filename):
+            # Secure the filename to prevent issues with special characters
             filename = secure_filename(file.filename)
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
             
+            # Save the file to the 'uploads' folder
+            file.save(filepath)
+            
+            # Send the file to Colab for transcription
+            transcription = send_to_colab(filepath)
+            
+            if transcription:
+                return render_template('speech_to_text.html', transcription=transcription)
+            else:
+                return jsonify({"error": "Failed to process the file on Colab"}), 500
 
-            # Process the file using the ML model
-            text_output = audio_to_text(filename)
-
-            # Redirect to a page showing the result
-            return render_template('result.html', text_output=text_output)
         else:
-            flash('File type not allowed')
-            return redirect(request.url)
+            return jsonify({"error": "Invalid file format"}), 400
 
     return render_template('upload.html')
+
+# Function to send the audio file to Colab
+def send_to_colab(filepath):
+    ngrok_url = "https://2cdf-34-81-31-88.ngrok-free.app"  # Replace with your current Ngrok URL
+    url = f"{ngrok_url}/transcribe"  # Ensure your Colab server exposes this endpoint
+
+    with open(filepath, 'rb') as audio_file:
+        files = {'file': audio_file}
+        try:
+            # Send the file to Colab for transcription
+            response = requests.post(url, files=files)
+            
+            # Check the response status code
+            if response.status_code == 200:
+                # Extract the transcription from the response
+                transcription = response.json().get('transcription', '')
+                return transcription
+            else:
+                print(f"Error: {response.status_code}, {response.text}")
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Request Exception occurred: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
+            return None     
