@@ -96,7 +96,7 @@ def upload_file():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://2cdf-34-81-31-88.ngrok-free.app"  # Replace with your current Ngrok URL
+    ngrok_url = "https://2cdf-34-81-31-88.ngrok-free.app"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
     url = f"{ngrok_url}/transcribe"  # Ensure your Colab server exposes this endpoint
 
     with open(filepath, 'rb') as audio_file:
