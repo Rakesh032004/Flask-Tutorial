@@ -22,7 +22,7 @@ def allowed_file(filename):
 # Routes
 @app_routes.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('LandingPage.html')
 
 @app_routes.route('/signup', methods=['GET', 'POST'])
 def signup():

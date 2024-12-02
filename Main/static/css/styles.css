@@ -1,0 +1,135 @@
+/* General Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  h1, h2 {
+    margin: 0;
+    transition-duration: 0.5s;
+  }
+  
+  p {
+    line-height: 1.5;
+    color: #555;
+  }
+  
+  a {
+    text-decoration: none;
+    color: white;
+  }
+  
+  button, a.button {
+    padding: 10px 20px;
+    background: #0078ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+  }
+  
+  button:hover, a.button:hover {
+    background: #005fcc;
+    transform: translateY(-3px);
+  }
+  
+  /* Hero Section */
+  .hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)),
+      url('https://wallpapercrafter.com/th800/273376-surgery-hospital-medical-and-doctor-hd.jpg')
+        center center/cover no-repeat;
+    color: white;
+  }
+  
+  .hero-content {
+    text-align: center;
+    z-index: 2;
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    animation: fadeIn 1s ease-out;
+  }
+  
+  .hero p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    animation: slideIn 1s ease-out;
+  }
+  
+  .hero .button {
+    animation: bounce 2s infinite ease-in-out;
+  }
+  
+  /* About Section */
+  .about-section {
+    padding: 60px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f4f4f4;
+  }
+  
+  .about-section .content {
+    width: 50%;
+  }
+  
+  .about-section .image {
+    width: 40%;
+    height: 300px;
+    background: url('https://www.replicant.com/wp-content/uploads/2022/08/How-Voice-AI-Is-Transforming-the-Patient-Experience-in-Healthcare-Blog-thumbnail.png') center center/cover;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+  }
+  
+  .about-section .image:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgb(0, 249, 79);
+   
+  }
+  
+  /* Services Section */
+  .services-section {
+    padding: 60px 20px;
+    text-align: center;
+  }
+  
+  .services-section .services {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 30px;
+  }
+  
+  .service-card {
+    width: 30%;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.3s, box
+  }
+  
+  .HomeAbout:hover{
+    color: rgb(6, 123, 177);
+    font-size: 2rem;
+    transition-duration: 0.5s;
+    
+  }
+  .Voice{
+    transition-duration: 0.3s;
+  }
+  .Voice:hover{
+    color:#06a125;
+    transition-duration: 0.3s;
+  }
