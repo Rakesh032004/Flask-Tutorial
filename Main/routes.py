@@ -94,10 +94,27 @@ def upload_file():
 
     return render_template('upload.html')
 
+@app_routes.route('/check-unique', methods=['POST'])
+def check_unique():
+    """Checks if a username or email is unique."""
+    username = request.json.get('username', None)
+    email = request.json.get('email', None)
+
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user:
+            return jsonify({"exists": True, "field": "username"})
+    if email:
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return jsonify({"exists": True, "field": "email"})
+
+    return jsonify({"exists": False})
+
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://2cdf-34-81-31-88.ngrok-free.app"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
-    url = f"{ngrok_url}/transcribe"  # Ensure your Colab server exposes this endpoint
+    ngrok_url = "https://3733-35-196-189-226.ngrok-free.app"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
+    url = f"{ngrok_url}/process_audio"  # Ensure your Colab server exposes this endpoint
 
     with open(filepath, 'rb') as audio_file:
         files = {'file': audio_file}
