@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcriptions</title>
+    <link rel="stylesheet" href="../static/css/styles3.css">
+</head>
+<body>
+    <h1>Uploaded Transcriptions</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>File Name</th>
+                <th>Transcription</th>
+                <th>Uploaded At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transcription in transcriptions %}
+            <tr>
+                <td>{{ transcription.id }}</td>
+                <td>{{ transcription.file_name }}</td>
+                <td>{{ transcription.transcription }}</td>
+                <td>{{ transcription.created_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">No transcriptions found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('app_routes.upload_file') }}">Upload Another File</a>
+</body>
+</html>

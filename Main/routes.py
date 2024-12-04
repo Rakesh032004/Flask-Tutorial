@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 import os
 import requests  # For sending files to the Colab server
-from Main.models import insert_user, get_all_users, User  # Adjust the import path as needed
+from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, insert_transcription # Adjust the import path as needed
 
 # Constants
 UPLOAD_FOLDER = './uploads'
@@ -83,9 +83,14 @@ def upload_file():
             
             # Send the file to Colab for transcription
             transcription = send_to_colab(filepath)
+            # transcription = "Dummy Text"
             
             if transcription:
-                return render_template('speech_to_text.html', transcription=transcription)
+                # Insert the transcription result into the database
+                insert_transcription(filename, transcription)
+
+                # Redirect to the transcriptions view page
+                return redirect(url_for('app_routes.view_transcriptions'))
             else:
                 return jsonify({"error": "Failed to process the file on Colab"}), 500
 
@@ -93,6 +98,7 @@ def upload_file():
             return jsonify({"error": "Invalid file format"}), 400
 
     return render_template('upload.html')
+
 
 @app_routes.route('/check-unique', methods=['POST'])
 def check_unique():
@@ -113,8 +119,8 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://3733-35-196-189-226.ngrok-free.app"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
-    url = f"{ngrok_url}/process_audio"  # Ensure your Colab server exposes this endpoint
+    ngrok_url = "ngrok_link"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
+    url = f"{ngrok_url}/transcribe"  # Ensure your Colab server exposes this endpoint
 
     with open(filepath, 'rb') as audio_file:
         files = {'file': audio_file}
@@ -136,3 +142,9 @@ def send_to_colab(filepath):
         except Exception as e:
             print(f"Unexpected error occurred: {e}")
             return None     
+
+@app_routes.route('/view_transcriptions')
+def view_transcriptions():
+    # Fetch all transcriptions from the database
+    transcriptions = get_all_records()
+    return render_template('view_transcriptions.html', transcriptions=transcriptions)
