@@ -13,6 +13,16 @@ class Transcription(db.Model):
     transcription = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+class PatientData(db.Model):
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    age = db.Column(db.String(10), nullable=True)  # To account for unknown or empty age
+    symptoms = db.Column(db.Text, nullable=False)
+    diagnosis = db.Column(db.String(255), nullable=False, default="Unknown")
+    treatment = db.Column(db.String(255), nullable=False, default="No treatment available")
+    audio_file = db.Column(db.String(255), nullable=True)
+
 def insert_user(username, email, password):
     user = User(username=username, email=email, password=password)
     db.session.add(user)
@@ -31,3 +41,24 @@ def insert_transcription(filename, transcription):
 def get_all_records():
     return Transcription.query.all()
     
+from Main.models import PatientData, db
+
+# After getting the transcription data
+def insert_patient_data(entity):
+    """Insert a single patient record into the database."""
+    record = PatientData(
+        patient_id=generate_patient_id(),
+        name=entity["Name"],
+        age=entity["Age"],
+        symptoms=entity["Symptoms"],
+        diagnosis=entity["Diagnosis"],
+        treatment=entity["Treatment"],
+        audio_file=entity["AudioFile"]
+    )
+    
+    db.session.add(record)
+    db.session.commit()
+
+
+def get_all_Patientrecords():
+    return PatientData.query.all()

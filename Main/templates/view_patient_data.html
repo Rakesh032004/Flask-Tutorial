@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Data</title>
+</head>
+<body>
+    <h1>Patient Data Records</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Symptoms</th>
+            <th>Diagnosis</th>
+            <th>Treatment</th>
+            <th>Audio File</th>
+        </tr>
+        {% for patient in patients %}
+        <tr>
+            <td>{{ patient.id }}</td>
+            <td>{{ patient.name }}</td>
+            <td>{{ patient.age }}</td>
+            <td>{{ patient.symptoms }}</td>
+            <td>{{ patient.diagnosis }}</td>
+            <td>{{ patient.treatment }}</td>
+            <td>{{ patient.audio_file }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

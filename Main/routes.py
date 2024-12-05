@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 import os
 import requests  # For sending files to the Colab server
-from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, insert_transcription # Adjust the import path as needed
+from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, insert_transcription, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
 
 # Constants
 UPLOAD_FOLDER = './uploads'
@@ -74,22 +74,25 @@ def upload_file():
 
         # Check if the file is allowed
         if file and allowed_file(file.filename):
-            # Secure the filename to prevent issues with special characters
+            # Secure the filename
             filename = secure_filename(file.filename)
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             
             # Save the file to the 'uploads' folder
             file.save(filepath)
             
-            # Send the file to Colab for transcription
-            transcription = send_to_colab(filepath)
-            # transcription = "Dummy Text"
+            # Send the file to Colab for transcription and data extraction
+            response_data = send_to_colab(filepath)
             
-            if transcription:
-                # Insert the transcription result into the database
-                insert_transcription(filename, transcription)
+            if response_data and isinstance(response_data, list) and len(response_data) > 0:
+                entity = response_data[0]  # Extract dictionary at index 0
 
-                # Redirect to the transcriptions view page
+                # Add AudioFile field to the dictionary
+                entity["AudioFile"] = filename
+                
+                # Insert the data into the database
+                insert_patient_data(entity)
+                
                 return redirect(url_for('app_routes.view_transcriptions'))
             else:
                 return jsonify({"error": "Failed to process the file on Colab"}), 500
@@ -98,6 +101,7 @@ def upload_file():
             return jsonify({"error": "Invalid file format"}), 400
 
     return render_template('upload.html')
+
 
 
 @app_routes.route('/check-unique', methods=['POST'])
@@ -119,32 +123,34 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "ngrok_link"  # Everytime run the ngro code in Colab and Replace with your current Ngrok URL
-    url = f"{ngrok_url}/transcribe"  # Ensure your Colab server exposes this endpoint
+    ngrok_url = "https://your-ngrok-url.ngrok-free.app"
+    url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
         files = {'file': audio_file}
         try:
-            # Send the file to Colab for transcription
             response = requests.post(url, files=files)
-            
-            # Check the response status code
             if response.status_code == 200:
-                # Extract the transcription from the response
-                transcription = response.json().get('transcription', '')
-                return transcription
+                tp = response.json() 
+                print(tp) # Should be a list with a dictionary at index 0
             else:
                 print(f"Error: {response.status_code}, {response.text}")
                 return None
         except requests.exceptions.RequestException as e:
-            print(f"Request Exception occurred: {e}")
+            print(f"Request Exception: {e}")
             return None
         except Exception as e:
-            print(f"Unexpected error occurred: {e}")
-            return None     
+            print(f"Unexpected Error: {e}")
+            return None
+
 
 @app_routes.route('/view_transcriptions')
 def view_transcriptions():
     # Fetch all transcriptions from the database
     transcriptions = get_all_records()
     return render_template('view_transcriptions.html', transcriptions=transcriptions)
+
+@app_routes.route('/view_patient_data')
+def view_patient_data():
+    patient_records = get_all_Patientrecords()  # Fetch all patient records
+    return render_template('view_patient_data.html', patients=patient_records)
