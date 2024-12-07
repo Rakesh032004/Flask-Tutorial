@@ -123,7 +123,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://your-ngrok-url.ngrok-free.app"
+    ngrok_url = "https://594b-34-75-111-27.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
@@ -132,7 +132,8 @@ def send_to_colab(filepath):
             response = requests.post(url, files=files)
             if response.status_code == 200:
                 tp = response.json() 
-                print(tp) # Should be a list with a dictionary at index 0
+                print(tp)
+                # Should be a list with a dictionary at index 0
             else:
                 print(f"Error: {response.status_code}, {response.text}")
                 return None

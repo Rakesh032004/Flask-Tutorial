@@ -43,6 +43,11 @@ def get_all_records():
     
 from Main.models import PatientData, db
 
+import uuid
+
+def generate_patient_id():
+    return str(uuid.uuid4())  # Generates a unique ID
+
 # After getting the transcription data
 def insert_patient_data(entity):
     """Insert a single patient record into the database."""
