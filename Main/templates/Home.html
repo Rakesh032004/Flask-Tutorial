@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+        
+/* base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none;
+    text-decoration: none;
+}
+
+a {
+    color: white;
+    font-size: 25px;
+}
+a:visited {
+    color: white;
+}
+a:hover {
+    color: #6f85ff;
+    transition: 0.3s ease-in-out;
+    border: 1px solid white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+body {
+    background-image: url("https://img.freepik.com/free-photo/health-still-life-with-copy-space_23-2148854031.jpg?t=st=1733420550~exp=1733424150~hmac=c032d3323aef028417f9d87d04460bf7bf46cb434c93be84b5ff268445c6bdc0&w=1380");
+    font-family: sans-serif;
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+
+/* off-screen-menu */
+.off-screen-menu {
+    background-color: rgb(34, 37, 49);
+    height: 100vh;
+    width: 100%;
+    max-width: 450px;
+    position: fixed;
+    top: 0;
+    left: -450px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 3rem;
+    transition: .3s ease;
+}
+.off-screen-menu.active {
+    left: 0;
+}
+
+/* nav */
+nav {
+    padding: 1rem;
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.445);
+}
+
+/* ham menu */
+.ham-menu {
+    height: 50px;
+    width: 40px;
+    position: relative;
+}
+.ham-menu span {
+    height: 5px;
+    width: 100%;
+    background-color: #bac2eb;
+    border-radius: 25px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: .3s ease;
+}
+.ham-menu span:nth-child(1) {
+    top: 25%;
+}
+.ham-menu span:nth-child(3) {
+    top: 75%;
+}
+.ham-menu.active span {
+    background-color: white;
+}
+.ham-menu.active span:nth-child(1) {
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.ham-menu.active span:nth-child(2) {
+    opacity: 0;
+}
+.ham-menu.active span:nth-child(3) {
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* buttons container of Upload and View Details Button*/
+/* Reset form styles */
+.form-reset {
+    margin: 0;
+    padding: 0;
+    border: none;
+    display: inline-block; /* Ensures forms don't break the layout */
+}
+
+/* Container and Button styles */
+.btn-container {
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    align-items: center; /* Align the buttons vertically */
+    margin-top: 10%;
+    gap: 20px; /* Space between the buttons */
+}
+
+.btn-container button {
+    background-color: #0d0d0d7d;
+    font-size: 3vmin;
+    border: 3px solid rgba(1, 252, 244, 0.686);
+    border-radius: 10px;
+    padding: 10px 20px; /* Add padding for better size control */
+    color: white;
+    cursor: pointer;
+    transition: transform 0.5s;
+    width: auto; /* Remove width 100% to keep buttons flexible */
+    text-align: center;
+}
+
+.viewdetails:hover {
+    background-color: rgba(10, 197, 19, 0.521);
+    transform: scale(1.1);
+}
+
+.FileUpload:hover {
+    background-color: #f8f8f895;
+    color: rgb(6, 200, 239);
+    transform: scale(1.1);
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="off-screen-menu">
+        <ul>
+            <li><a href="#">View Profile</a></li>
+            <li><a href="#">Logout</a></li>
+            <li><a href="#">Settings</a></li>
+        </ul>
+    </div>
+
+    <nav>
+        <div class="ham-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    <div class="btn-container">
+       <div class="btn-container">
+    <!-- Upload Form -->
+    <form action="{{ url_for('app_routes.upload_file') }}" method="GET">
+        <button type="submit" class="FileUpload">Upload</button>
+    </form>
+
+    <!-- View Details Form -->
+    <form action="{{ url_for('app_routes.view_patient_data') }}" method="GET">
+        <button type="submit" class="viewdetails">View Details</button>
+    </form>
+</div>
+
+    </div>
+    <script>
+        const hamMenu = document.querySelector(".ham-menu");
+        const offScreenMenu = document.querySelector(".off-screen-menu");
+
+        hamMenu.addEventListener("click", () => {
+            hamMenu.classList.toggle("active");
+            offScreenMenu.classList.toggle("active");
+        });
+    </script>
+</body>
+</html>

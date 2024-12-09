@@ -24,6 +24,12 @@ def allowed_file(filename):
 def index():
     return render_template('LandingPage.html')
 
+#home 
+@app_routes.route('/home')
+#@login_required
+def home():
+    return render_template('home.html')
+
 @app_routes.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -33,7 +39,7 @@ def signup():
 
         # Insert user into the database
         insert_user(username, email, password)
-        return redirect(url_for('app_routes.upload_file'))
+        return redirect(url_for('app_routes.home'))
 
     return render_template('signup.html')
 
@@ -53,7 +59,8 @@ def login():
 
         if user and user.password == password:  # Compare passwords
             # Valid credentials
-            return redirect(url_for('app_routes.upload_file'))
+            return redirect(url_for('app_routes.home'))
+            
         else:
             # Invalid credentials
             flash('Invalid username or password', 'error')
@@ -66,41 +73,41 @@ def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
             return jsonify({"error": "No file part"}), 400
-        
+
         file = request.files['file']
-        
+
         if file.filename == '':
             return jsonify({"error": "No selected file"}), 400
 
         # Check if the file is allowed
         if file and allowed_file(file.filename):
-            # Secure the filename
             filename = secure_filename(file.filename)
             filepath = os.path.join(UPLOAD_FOLDER, filename)
-            
-            # Save the file to the 'uploads' folder
             file.save(filepath)
-            
-            # Send the file to Colab for transcription and data extraction
+
+            # Send file to Colab server for processing
             response_data = send_to_colab(filepath)
-            
+
             if response_data and isinstance(response_data, list) and len(response_data) > 0:
-                entity = response_data[0]  # Extract dictionary at index 0
+                entity = response_data[0]
 
-                # Add AudioFile field to the dictionary
+                # Add the filename to entity for storing in DB
                 entity["AudioFile"] = filename
-                
-                # Insert the data into the database
-                insert_patient_data(entity)
-                
-                return redirect(url_for('app_routes.view_transcriptions'))
-            else:
-                return jsonify({"error": "Failed to process the file on Colab"}), 500
 
+                # Insert transcription into the Transcription table
+                #insert_transcription(filename, entity["transcription"])
+
+                # Insert extracted patient data into the PatientData table
+                insert_patient_data(entity)
+
+                return redirect(url_for('app_routes.view_patient_data'))
+            else:
+                return jsonify({"error": "Failed to process file on Colab"}), 500
         else:
             return jsonify({"error": "Invalid file format"}), 400
 
     return render_template('upload.html')
+
 
 
 
@@ -123,7 +130,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://594b-34-75-111-27.ngrok-free.app"
+    ngrok_url = "https://812b-34-83-37-76.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
@@ -133,6 +140,7 @@ def send_to_colab(filepath):
             if response.status_code == 200:
                 tp = response.json() 
                 print(tp)
+                return tp
                 # Should be a list with a dictionary at index 0
             else:
                 print(f"Error: {response.status_code}, {response.text}")

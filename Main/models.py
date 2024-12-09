@@ -52,17 +52,16 @@ def generate_patient_id():
 def insert_patient_data(entity):
     """Insert a single patient record into the database."""
     record = PatientData(
-        patient_id=generate_patient_id(),
-        name=entity["Name"],
-        age=entity["Age"],
-        symptoms=entity["Symptoms"],
-        diagnosis=entity["Diagnosis"],
-        treatment=entity["Treatment"],
-        audio_file=entity["AudioFile"]
+        name=entity.get("Name", "Unknown"),
+        age=entity.get("Age", ""),
+        symptoms=entity.get("Symptoms", ""),
+        diagnosis=entity.get("Diagnosis", "Unknown"),
+        treatment=entity.get("Treatment", "No treatment available"),
+        audio_file=entity.get("AudioFile", "")
     )
-    
     db.session.add(record)
     db.session.commit()
+
 
 
 def get_all_Patientrecords():
