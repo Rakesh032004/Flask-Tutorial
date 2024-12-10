@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import os
+from Main import db
 import requests  # For sending files to the Colab server
 from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, insert_transcription, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
 
@@ -130,7 +131,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://812b-34-83-37-76.ngrok-free.app"
+    ngrok_url = "https://cd2c-34-75-147-136.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
@@ -153,13 +154,29 @@ def send_to_colab(filepath):
             return None
 
 
-@app_routes.route('/view_transcriptions')
-def view_transcriptions():
-    # Fetch all transcriptions from the database
-    transcriptions = get_all_records()
-    return render_template('view_transcriptions.html', transcriptions=transcriptions)
+# @app_routes.route('/view_transcriptions')
+# def view_transcriptions():
+#     # Fetch all transcriptions from the database
+#     transcriptions = get_all_records()
+#     return render_template('view_transcriptions.html', transcriptions=transcriptions)
 
 @app_routes.route('/view_patient_data')
 def view_patient_data():
     patient_records = get_all_Patientrecords()  # Fetch all patient records
     return render_template('view_patient_data.html', patients=patient_records)
+
+@app_routes.route('/delete_patient/<int:patient_id>', methods=['POST'])
+def delete_patient(patient_id):
+    # Find the patient by ID
+    #print(type(patient_id))
+    patient = PatientData.query.get(patient_id)
+    print(patient)
+    if not patient:
+        return "Patient not found", 404
+
+    # Delete the patient
+    db.session.delete(patient)
+    db.session.commit()
+    patient_rec=get_all_Patientrecords()
+    #return redirect(url_for('view_patient_data', patients= patient))  # Redirect back to the patients list page
+    return render_template('/view_patient_data.html', patients=patient_rec)
