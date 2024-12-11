@@ -43,7 +43,7 @@ def signup():
 
         # Insert user into the database
         insert_user(username, email, password)
-        return redirect(url_for('app_routes.home'))
+        return redirect(url_for('app_routes.finalHome'))
 
     return render_template('signup.html')
 
@@ -63,7 +63,7 @@ def login():
 
         if user and user.password == password:  # Compare passwords
             # Valid credentials
-            return redirect(url_for('app_routes.home'))
+            return redirect(url_for('app_routes.finalHome'))
             
         else:
             # Invalid credentials
