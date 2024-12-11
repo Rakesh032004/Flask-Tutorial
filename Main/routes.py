@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file
 from werkzeug.utils import secure_filename
 import os
 from Main import db
 import requests  # For sending files to the Colab server
-from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, insert_transcription, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
+from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
 
 # Constants
 UPLOAD_FOLDER = './uploads'
@@ -131,7 +134,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://cd2c-34-75-147-136.ngrok-free.app"
+    ngrok_url = "https://0726-34-19-107-154.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
@@ -180,3 +183,30 @@ def delete_patient(patient_id):
     patient_rec=get_all_Patientrecords()
     #return redirect(url_for('view_patient_data', patients= patient))  # Redirect back to the patients list page
     return render_template('/view_patient_data.html', patients=patient_rec)
+
+
+@app_routes.route('/download_report/<int:patient_id>', methods=['GET'])
+def download_report(patient_id):
+    # Fetch the patient's data from the database
+    patient = PatientData.query.get_or_404(patient_id)
+
+    # Create a BytesIO buffer to hold the PDF data in memory
+    buffer = io.BytesIO()
+
+    # Create a PDF canvas and add content
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    pdf.drawString(100, 750, f"Patient ID: {patient.id}")
+    pdf.drawString(100, 730, f"Name: {patient.name}")
+    pdf.drawString(100, 710, f"Age: {patient.age}")
+    pdf.drawString(100, 690, f"Symptoms: {patient.symptoms}")
+    pdf.drawString(100, 670, f"Diagnosis: {patient.diagnosis}")
+    pdf.drawString(100, 650, f"Treatment: {patient.treatment}")
+
+    # Finalize the PDF and save it to the buffer
+    pdf.save()
+
+    # Go back to the beginning of the BytesIO buffer
+    buffer.seek(0)
+
+    # Send the generated PDF file as a response for download
+    return send_file(buffer, as_attachment=True, download_name=f"patient_{patient_id}_report.pdf", mimetype='application/pdf')

@@ -32,11 +32,11 @@ def get_all_users():
     return User.query.all()
 
 
-def insert_transcription(filename, transcription):
-    """Insert the file name and transcription into the database."""
-    new_transcription = Transcription(file_name=filename, transcription=transcription)
-    db.session.add(new_transcription)
-    db.session.commit()
+# def insert_transcription(filename, transcription):
+#     """Insert the file name and transcription into the database."""
+#     new_transcription = Transcription(file_name=filename, transcription=transcription)
+#     db.session.add(new_transcription)
+#     db.session.commit()
 
 def get_all_records():
     return Transcription.query.all()
