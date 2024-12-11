@@ -32,7 +32,7 @@ def index():
 @app_routes.route('/home')
 #@login_required
 def home():
-    return render_template('home.html')
+    return render_template('finalHome.html')
 
 @app_routes.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -134,7 +134,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://0726-34-19-107-154.ngrok-free.app"
+    ngrok_url = "https://90d1-35-230-55-149.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
