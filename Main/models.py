@@ -1,9 +1,10 @@
 from Main import db
+from sqlalchemy.exc import IntegrityError
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=False, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
 class Transcription(db.Model):
@@ -24,9 +25,19 @@ class PatientData(db.Model):
     audio_file = db.Column(db.String(255), nullable=True)
 
 def insert_user(username, email, password):
-    user = User(username=username, email=email, password=password)
-    db.session.add(user)
-    db.session.commit()
+
+    existing_user = db.session.query(User).filter_by(email=email).first()
+    if existing_user:
+        print("Email already exists. Please use a different email.")
+    else:
+        try:
+            new_user = User(username=username, email=email, password=password)
+            db.session.add(new_user)
+            db.session.commit()
+            print("User added successfully!")
+        except IntegrityError:
+            db.session.rollback()
+            print("An error occurred while adding the user.")
 
 def get_all_users():
     return User.query.all()

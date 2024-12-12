@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 from Main import db
 import requests  # For sending files to the Colab server
-from Main.models import insert_user, get_all_users, User, Transcription, get_all_records, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
+from Main.models import get_all_users, User, insert_user,Transcription, get_all_records, PatientData,insert_patient_data, get_all_Patientrecords # Adjust the import path as needed
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
@@ -43,7 +43,7 @@ def signup():
 
         # Insert user into the database
         insert_user(username, email, password)
-        return redirect(url_for('app_routes.finalHome'))
+        return redirect(url_for('app_routes.home'))
 
     return render_template('signup.html')
 
@@ -63,7 +63,7 @@ def login():
 
         if user and user.password == password:  # Compare passwords
             # Valid credentials
-            return redirect(url_for('app_routes.finalHome'))
+            return redirect(url_for('app_routes.home'))
             
         else:
             # Invalid credentials
@@ -134,7 +134,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://90d1-35-230-55-149.ngrok-free.app"
+    ngrok_url = "https://769d-35-236-228-11.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
