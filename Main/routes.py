@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, session
 from werkzeug.utils import secure_filename
 import os
 from Main import db
@@ -7,6 +7,7 @@ from Main.models import get_all_users, User, insert_user,Transcription, get_all_
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
+from functools import wraps
 
 # Constants
 UPLOAD_FOLDER = './uploads'
@@ -19,12 +20,23 @@ if not os.path.exists(UPLOAD_FOLDER):
 # Flask Blueprint
 app_routes = Blueprint('app_routes', __name__)
 
-# Helper function to check file extensions
+#Helper function to check file extensions
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:  # Check if the user is logged in
+            session['next_url'] = request.url  # Save the current URL to return after login
+            session['alert_message'] = "Please login to continue"  # Store alert message in session
+            return redirect(url_for('app_routes.login'))  # Redirect to login page
+        
+        return f(*args, **kwargs)
+    return decorated_function
 # Routes
 @app_routes.route('/')
+#@login_required
 def index():
     return render_template('LandingPage.html')
 
@@ -34,26 +46,33 @@ def index():
 def home():
     return render_template('finalHome.html')
 
+
+
 @app_routes.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        
 
         # Insert user into the database
         insert_user(username, email, password)
-        return redirect(url_for('app_routes.home'))
+        
+        return redirect(url_for('app_routes.login'))
 
     return render_template('signup.html')
 
 @app_routes.route('/view_db')
+@login_required
 def view_db():
     users = get_all_users()
     return render_template('success.html', users=users)
 
 @app_routes.route('/login', methods=['GET', 'POST'])
 def login():
+    alert_message = session.pop('alert_message', None)  # Get the alert message if it exists
+
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -62,17 +81,23 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if user and user.password == password:  # Compare passwords
-            # Valid credentials
-            return redirect(url_for('app_routes.home'))
-            
-        else:
-            # Invalid credentials
-            flash('Invalid username or password', 'error')
-            return render_template('login.html')  # Re-render login page with error
+            # Store user in session
+            session['user_id'] = user.id
+            session['username'] = user.username
 
-    return render_template('login.html')
+            # Redirect to the saved next URL or default to the upload page
+            return redirect(url_for('app_routes.home'))
+
+
+        else:
+            alert_message = "Invalid username or password"  # Set alert message for login failure
+
+    return render_template('login.html', alert_message=alert_message)
+
+
 
 @app_routes.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -134,7 +159,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://769d-35-236-228-11.ngrok-free.app"
+    ngrok_url = "https://5a94-104-196-142-72.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
@@ -164,11 +189,18 @@ def send_to_colab(filepath):
 #     return render_template('view_transcriptions.html', transcriptions=transcriptions)
 
 @app_routes.route('/view_patient_data')
+@login_required
 def view_patient_data():
     patient_records = get_all_Patientrecords()  # Fetch all patient records
     return render_template('view_patient_data.html', patients=patient_records)
 
+@app_routes.route('/logout')
+def logout():
+    
+    return render_template('index.html')
+
 @app_routes.route('/delete_patient/<int:patient_id>', methods=['POST'])
+@login_required
 def delete_patient(patient_id):
     # Find the patient by ID
     #print(type(patient_id))
@@ -186,6 +218,7 @@ def delete_patient(patient_id):
 
 
 @app_routes.route('/download_report/<int:patient_id>', methods=['GET'])
+@login_required
 def download_report(patient_id):
     # Fetch the patient's data from the database
     patient = PatientData.query.get_or_404(patient_id)
