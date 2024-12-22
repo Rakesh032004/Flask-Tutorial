@@ -159,7 +159,7 @@ def check_unique():
 
 # Function to send the audio file to Colab
 def send_to_colab(filepath):
-    ngrok_url = "https://5a94-104-196-142-72.ngrok-free.app"
+    ngrok_url = "https://e725-34-106-244-4.ngrok-free.app"
     url = f"{ngrok_url}/process_audio"
 
     with open(filepath, 'rb') as audio_file:
